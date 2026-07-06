@@ -1,8 +1,20 @@
 {
-  "name": "hevy-mcp",
+  "name": "@antnsn/hevy-mcp",
   "version": "0.1.0",
   "description": "MCP server for the Hevy workout tracker API",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/antnsn/hevy-mcp.git"
+  },
+  "homepage": "https://github.com/antnsn/hevy-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/antnsn/hevy-mcp/issues"
+  },
+  "author": "Marius Antonsen",
+  "publishConfig": {
+    "access": "public"
+  },
   "bin": {
     "hevy-mcp": "dist/index.js"
   },
@@ -12,6 +24,7 @@
   ],
   "scripts": {
     "build": "tsc && chmod +x dist/index.js",
+    "prepublishOnly": "npm run build",
     "dev": "tsx src/index.ts",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit"

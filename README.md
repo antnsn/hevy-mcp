@@ -4,44 +4,51 @@ MCP (Model Context Protocol) server for the [Hevy](https://hevy.com) workout tra
 
 Lets Claude (or any MCP client) read and write your Hevy data: workouts, routines, exercise templates, routine folders, exercise history, and body measurements.
 
-## Requirements
+**Requirements:** Node.js >= 18, a Hevy Pro account, and an API key from <https://hevy.com/settings?developer>.
 
-- Node.js >= 18
-- A Hevy Pro account and API key from <https://hevy.com/settings?developer>
+## Usage
 
-## Setup
+### `.mcp.json` (project-level, Claude Code)
 
-```bash
-npm install
-npm run build
-```
+A `.mcp.json` file in a project's root directory makes MCP servers available to everyone who runs Claude Code inside that project — check it into git and the whole team gets the server automatically.
 
-## Configure
+Step by step:
 
-### API key
-
-Two ways to provide the key (checked in this order):
-
-1. `HEVY_API_KEY` environment variable
-2. A `.env` file in the project root (gitignored):
+1. Create a file named `.mcp.json` in the root of your project (same folder as `.git`), or run:
 
    ```bash
-   echo 'HEVY_API_KEY=your-api-key' > .env
-   chmod 600 .env
+   claude mcp add hevy --scope project -- npx -y @antnsn/hevy-mcp
    ```
 
-### Claude Code
+   which creates/updates it for you.
+2. Make sure it contains:
 
-With the `.env` file in place, the project's `.mcp.json` is picked up automatically when running `claude` inside this repo. To register it globally:
+   ```json
+   {
+     "mcpServers": {
+       "hevy": {
+         "command": "npx",
+         "args": ["-y", "@antnsn/hevy-mcp"],
+         "env": {
+           "HEVY_API_KEY": "${HEVY_API_KEY}"
+         }
+       }
+     }
+   }
+   ```
+
+3. Provide the key. `${HEVY_API_KEY}` is expanded from your environment at launch, so the key never lives in the file (safe to commit). Export it in your shell profile or session:
+
+   ```bash
+   export HEVY_API_KEY=your-api-key
+   ```
+
+4. Start (or restart) `claude` inside the project. First use prompts you to approve the project's MCP servers; approve and the `hevy` tools are available. Verify with `/mcp`.
+
+### Claude Code (global)
 
 ```bash
-claude mcp add hevy -s user -- node /path/to/hevy-mcp/dist/index.js
-```
-
-Or pass the key explicitly instead of using `.env`:
-
-```bash
-claude mcp add hevy --env HEVY_API_KEY=your-api-key -- node /path/to/hevy-mcp/dist/index.js
+claude mcp add hevy -s user --env HEVY_API_KEY=your-api-key -- npx -y @antnsn/hevy-mcp
 ```
 
 ### Claude Desktop
@@ -52,8 +59,8 @@ Add to `claude_desktop_config.json`:
 {
   "mcpServers": {
     "hevy": {
-      "command": "node",
-      "args": ["/path/to/hevy-mcp/dist/index.js"],
+      "command": "npx",
+      "args": ["-y", "@antnsn/hevy-mcp"],
       "env": {
         "HEVY_API_KEY": "your-api-key"
       }
@@ -89,16 +96,45 @@ Add to `claude_desktop_config.json`:
 | `update-body-measurement` | Update a body measurement (full overwrite) |
 | `get-user-info` | Authenticated user info |
 
-## Development
+## Notes
+
+- The Hevy API is v0 ("use at your own risk" per Hevy's docs) — endpoints may change.
+- The API has **no delete endpoints**; anything created can only be deleted manually in the Hevy app.
+- `update-workout`, `update-routine`, and `update-body-measurement` overwrite the full record; fetch first, modify, then update.
+
+## Contributing
+
+### From source
+
+```bash
+git clone https://github.com/antnsn/hevy-mcp.git
+cd hevy-mcp
+npm install
+npm run build
+```
+
+When running from a clone, the key can also live in a `.env` file in the project root (gitignored) instead of the environment:
+
+```bash
+echo 'HEVY_API_KEY=your-api-key' > .env
+chmod 600 .env
+```
+
+The repo's `.mcp.json` then picks the server up automatically when running `claude` inside the repo. Note: the `.env` file only works for clones — the npm-installed package looks for it next to its own install location, so use the `env` config shown above instead.
+
+### Development
 
 ```bash
 npm run dev        # run from source via tsx
 npm run typecheck  # type-check without emitting
 ```
 
-The upstream OpenAPI spec is vendored at `docs-openapi.json` (extracted from <https://api.hevyapp.com/docs/>).
+Test interactively with the MCP Inspector (pass the key explicitly — the Inspector does not inherit your shell environment):
 
-## Notes
+```bash
+npx @modelcontextprotocol/inspector -e HEVY_API_KEY=$HEVY_API_KEY node dist/index.js
+```
 
-- The Hevy API is v0 ("use at your own risk" per Hevy's docs) — endpoints may change.
-- `update-workout`, `update-routine`, and `update-body-measurement` overwrite the full record; fetch first, modify, then update.
+The upstream OpenAPI spec is vendored at `docs-openapi.json`, extracted from the Swagger UI at <https://api.hevyapp.com/docs/> (the spec is embedded in `swagger-ui-init.js`; there is no standalone spec URL).
+
+Issues and PRs welcome at <https://github.com/antnsn/hevy-mcp>.

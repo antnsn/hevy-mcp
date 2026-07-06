@@ -69,6 +69,31 @@ Add to `claude_desktop_config.json`:
 }
 ```
 
+### Global install (alternative to npx)
+
+If `npx` is slow or blocked in your environment — common on corporate machines with npm security policies (e.g. `allow-scripts` guards) — install once globally:
+
+```bash
+npm install -g @antnsn/hevy-mcp
+```
+
+Then use `hevy-mcp` as the command in any of the configs above:
+
+```json
+{
+  "mcpServers": {
+    "hevy": {
+      "command": "hevy-mcp",
+      "env": {
+        "HEVY_API_KEY": "${HEVY_API_KEY}"
+      }
+    }
+  }
+}
+```
+
+Note: `${HEVY_API_KEY}` interpolation only works in Claude Code's `.mcp.json`. Claude Desktop does not expand environment variables — put the literal key there (`"HEVY_API_KEY": "your-api-key"`).
+
 ## Tools
 
 | Tool | Description |

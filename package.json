@@ -1,6 +1,6 @@
 {
   "name": "@antnsn/hevy-mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "MCP server for the Hevy workout tracker API",
   "type": "module",
   "repository": {
